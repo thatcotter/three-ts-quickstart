@@ -9,9 +9,14 @@
     "resolveJsonModule": true,
     "esModuleInterop": true,
     "noEmit": true,
-    "noUnusedLocals": true,
+    "noUnusedLocals": false,
     "noUnusedParameters": true,
-    "noImplicitReturns": true
+    "noImplicitReturns": true,
+    "isolatedModules": true,
+    "types": ["vite/client"]
+  },
+  "watchOptions": {
+    "watchFile": "useFsEvents"
   },
   "include": ["./src"]
 }

@@ -1,12 +1,14 @@
 import './style.scss';
-import * as THREE from 'three';
+import * as THREE from 'three'; 1
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
+import { ShaderMaterial } from 'three';
 
 let renderer: THREE.WebGLRenderer;
 let scene: THREE.Scene;
 let camera: THREE.PerspectiveCamera;
+let clock = new THREE.Clock();
 
 let lightAmbient: THREE.AmbientLight;
 let lightPoint: THREE.PointLight;
@@ -16,6 +18,12 @@ let stats: any;
 
 let cube: THREE.Mesh;
 let plane: THREE.Mesh;
+let exampleModel: THREE.Group;
+let exampleTexture: THREE.Texture;
+
+import vertexShader from '../resources/shaders/shader.vert?raw';
+import fragmentShader from '../resources/shaders/shader.frag?raw';
+let shaderMat: ShaderMaterial;
 
 function main() {
     initScene();
@@ -42,10 +50,10 @@ function initScene() {
 
     document.body.appendChild(renderer.domElement);
 
-    controls = new OrbitControls(camera, renderer.domElement);
+    // controls = new OrbitControls(camera, renderer.domElement);
 
-    lightAmbient = new THREE.AmbientLight(0x404040);
-    scene.add(lightAmbient);
+    // lightAmbient = new THREE.AmbientLight(0x404040);
+    // scene.add(lightAmbient);
 
     // Add a point light to add shadows
     // https://github.com/mrdoob/three.js/pull/14087#issuecomment-431003830
@@ -70,16 +78,64 @@ function initScene() {
     lightPoint.shadow.camera.near = cameraNear;
     lightPoint.shadow.camera.far = cameraFar;
 
+
+
     // Add a cube
     const geometryBox = new THREE.BoxGeometry();
-    const materialBox = new THREE.MeshPhongMaterial({ color: 0xffff00 });
+    const materialBox = new THREE.MeshPhongMaterial({ color: 0x456789 });
     cube = new THREE.Mesh(geometryBox, materialBox);
     cube.castShadow = true;
     scene.add(cube);
 
+    // load a texture
+    // let textureMaterial: THREE.Material;
+    // new THREE.TextureLoader().load('/resources/textures/uv_grid_opengl.jpg', function (texture) {
+
+    //     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    //     texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+    //     exampleTexture = texture;
+
+    //     textureMaterial = new THREE.MeshBasicMaterial({ map: texture });
+    //     // cube.material = textureMaterial;
+
+    //     const loader = new GLTFLoader().setPath('/resources/models/');
+    //     loader.load('exampleModel.gltf', function (gltf) {
+    //         exampleModel = gltf.scene;
+
+    //         interface gltfMesh extends THREE.Object3D<THREE.Event> {
+    //             material: THREE.Material
+    //         }
+
+    //         console.log(exampleModel);
+
+    //         exampleModel.traverse((child: THREE.Object3D<THREE.Event>) => {
+    //             console.log(child);
+    //             console.log(child.type === "Mesh");
+    //             (child as gltfMesh).material = textureMaterial;
+    //         })
+
+    //         scene.add(exampleModel);
+    //     });
+    // });
+
+
+
     // Add a plane
     const geometryPlane = new THREE.PlaneBufferGeometry(6, 6, 1, 1);
     const materialPlane = new THREE.MeshPhongMaterial({ color: 0x666666 });
+
+    const uniforms = {
+        u_time: { type: 'f', value: 1.0 },
+        u_resolution: { type: 'v2', value: new THREE.Vector2(800,800) },
+        u_mouse: { type: 'v2', value: new THREE.Vector2() },
+    };
+
+    shaderMat = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
+    });
 
     plane = new THREE.Mesh(geometryPlane, materialPlane);
     plane.position.z = -2;
@@ -129,12 +185,21 @@ function animate() {
         animate();
     });
 
+    let delta = clock.getDelta();
+    
+    shaderMat.uniforms.u_time.value += delta;
+
     cube.rotation.x += 0.01;
     cube.rotation.y += 0.01;
 
+    if (exampleModel != undefined) {
+        exampleModel.rotateX(0.01);
+        exampleModel.rotateY(0.01);
+    }
+
     if (stats) stats.update();
 
-    if (controls) controls.update();
+    // if (controls) controls.update();
 
     renderer.render(scene, camera);
 }

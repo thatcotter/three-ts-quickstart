@@ -18,5 +18,5 @@ void main(void){
 		sin(position.x * position.y + u_time / 3.) 
 	);
 
-	gl_FragColor=vec4(UV.x, UV.y, 0., 1.0);
+	gl_FragColor=vec4(red, green, blue, 1.0);
 }

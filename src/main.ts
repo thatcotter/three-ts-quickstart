@@ -1,9 +1,9 @@
 import './style.scss';
-import * as THREE from 'three'; 1
+import * as THREE from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js'
-import { ShaderMaterial } from 'three';
+import { ShaderMaterial, Shading } from 'three';
 
 let renderer: THREE.WebGLRenderer;
 let scene: THREE.Scene;
@@ -18,6 +18,7 @@ let stats: any;
 
 let cube: THREE.Mesh;
 let plane: THREE.Mesh;
+let group: THREE.Group;
 let exampleModel: THREE.Group;
 let exampleTexture: THREE.Texture;
 
@@ -50,10 +51,13 @@ function initScene() {
 
     document.body.appendChild(renderer.domElement);
 
-    // controls = new OrbitControls(camera, renderer.domElement);
+    controls = new OrbitControls(camera, renderer.domElement);
 
-    // lightAmbient = new THREE.AmbientLight(0x404040);
-    // scene.add(lightAmbient);
+    lightAmbient = new THREE.AmbientLight(0x333333);
+    scene.add(lightAmbient);
+
+	// lightAmbient = new THREE.AmbientLight(0xffffff);
+	// scene.add(lightAmbient);
 
     // Add a point light to add shadows
     // https://github.com/mrdoob/three.js/pull/14087#issuecomment-431003830
@@ -64,6 +68,12 @@ function initScene() {
     lightPoint.castShadow = true;
     lightPoint.intensity = shadowIntensity;
     scene.add(lightPoint);
+
+	lightPoint = new THREE.PointLight(0xffffff)
+	lightPoint.position.set(-0.5, 0.5, 4)
+	lightPoint.castShadow = true;
+	lightPoint.intensity = shadowIntensity;
+	scene.add(lightPoint)
 
     const lightPoint2 = lightPoint.clone();
     lightPoint2.intensity = 1 - shadowIntensity;
@@ -80,69 +90,106 @@ function initScene() {
 
 
 
-    // Add a cube
-    const geometryBox = new THREE.BoxGeometry();
-    const materialBox = new THREE.MeshPhongMaterial({ color: 0x456789 });
-    cube = new THREE.Mesh(geometryBox, materialBox);
-    cube.castShadow = true;
-    scene.add(cube);
+    // // Add a cube
+    // const geometryBox = new THREE.BoxGeometry();
+    // const materialBox = new THREE.MeshPhongMaterial({ color: 0x456789 });
+    // cube = new THREE.Mesh(geometryBox, materialBox);
+    // cube.castShadow = true;
+    // scene.add(cube);
 
-    // load a texture
-    // let textureMaterial: THREE.Material;
-    // new THREE.TextureLoader().load('/resources/textures/uv_grid_opengl.jpg', function (texture) {
-
-    //     texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-    //     texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-
-    //     exampleTexture = texture;
-
-    //     textureMaterial = new THREE.MeshBasicMaterial({ map: texture });
-    //     // cube.material = textureMaterial;
-
-    //     const loader = new GLTFLoader().setPath('/resources/models/');
-    //     loader.load('exampleModel.gltf', function (gltf) {
-    //         exampleModel = gltf.scene;
-
-    //         interface gltfMesh extends THREE.Object3D<THREE.Event> {
-    //             material: THREE.Material
-    //         }
-
-    //         console.log(exampleModel);
-
-    //         exampleModel.traverse((child: THREE.Object3D<THREE.Event>) => {
-    //             console.log(child);
-    //             console.log(child.type === "Mesh");
-    //             (child as gltfMesh).material = textureMaterial;
-    //         })
-
-    //         scene.add(exampleModel);
-    //     });
-    // });
+	const cubeGeometry = new THREE.BoxGeometry()
+	const cubeMaterial = new THREE.MeshPhongMaterial({color: 0xf0bbbb})
+	// cubeMaterial.wireframe = true;
+	cube = new THREE.Mesh(cubeGeometry, cubeMaterial)
+	cube.castShadow = true;
 
 
+	group = new THREE.Group()
+	group.add(cube)
 
-    // Add a plane
-    const geometryPlane = new THREE.PlaneBufferGeometry(6, 6, 1, 1);
-    const materialPlane = new THREE.MeshPhongMaterial({ color: 0x666666 });
+	cube.position.set(-2, 0, 0)
+
+	scene.add(group)
+
+    // // load a texture
+    let textureMaterial: THREE.Material;
+	let textureLoader = new THREE.TextureLoader().setPath('/resources/textures/')
+    textureLoader.load('uv_grid_opengl.jpg', function (texture) {
+
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+
+        exampleTexture = texture;
+
+		textureMaterial = new THREE.MeshBasicMaterial({map: texture});
+
+		cube.material = textureMaterial;
+
+        const modelLoader = new GLTFLoader().setPath('/resources/models/');
+		modelLoader.load('teapot.gltf', (gltf) => {
+			exampleModel = gltf.scene;
+			console.log(exampleModel)
+
+			exampleModel.scale.set(0.01,0.01,0.01);
+			exampleModel.position.x = 2;
+
+			const teapotMat = new THREE.MeshPhongMaterial({color: 0x22ff22})
+
+			interface gltfMesh extends THREE.Object3D<THREE.Event> {
+				material: THREE.Material
+			}
+
+			exampleModel.traverse((child: THREE.Object3D<THREE.Event>) => {
+				console.log(child)
+				console.log(child.type === "Mesh")
+				if (child.type === "Mesh") {
+					// (child as gltfMesh).material = teapotMat;
+					(child as gltfMesh).material = textureMaterial;
+				} 			
+			})
+
+			// scene.add(exampleModel)
+			group.add(exampleModel)
+		})
+    });
+
+
+	
+
+
+    // // Add a plane
+    const geometryPlane = new THREE.PlaneBufferGeometry(6, 6, 10, 10);
+    const materialPlane = new THREE.MeshPhongMaterial({ 
+		color: 0x666666, 
+		side: THREE.DoubleSide,
+		flatShading: true		
+	});
 
     const uniforms = {
         u_time: { type: 'f', value: 1.0 },
         u_resolution: { type: 'v2', value: new THREE.Vector2(800,800) },
-        u_mouse: { type: 'v2', value: new THREE.Vector2() },
+        // u_mouse: { type: 'v2', value: new THREE.Vector2() },
     };
 
-    shaderMat = new THREE.ShaderMaterial({
-        uniforms: uniforms,
-        vertexShader: vertexShader,
-        fragmentShader: fragmentShader,
-    });
+    // shaderMat = new THREE.ShaderMaterial({
+    //     uniforms: uniforms,
+    //     vertexShader: vertexShader,
+    //     fragmentShader: fragmentShader,
+    // });
+
+	shaderMat = new THREE.ShaderMaterial({
+		uniforms: uniforms,
+		vertexShader: vertexShader,
+		fragmentShader: fragmentShader,
+		side: THREE.DoubleSide
+	})
 
     plane = new THREE.Mesh(geometryPlane, materialPlane);
     plane.position.z = -2;
     plane.receiveShadow = true;
     scene.add(plane);
 
-    // Init animation
+    // // Init animation
     animate();
 }
 
@@ -192,14 +239,32 @@ function animate() {
     cube.rotation.x += 0.01;
     cube.rotation.y += 0.01;
 
+	group.rotateZ(delta)
+	group.position.set(Math.sin(clock.getElapsedTime())*2,0,0)
+
+	const vertArray = plane.geometry.attributes.position;
+	// console.log(vertArray)
+
+	for (let i = 0; i < vertArray.count; i++) {
+		vertArray.setZ(i, 
+			Math.sin(clock.getElapsedTime()+i-vertArray.count/2)*0.5
+			+ Math.cos(clock.getElapsedTime()-i)*0.5)
+	}
+	plane.geometry.attributes.position.needsUpdate = true;
+
     if (exampleModel != undefined) {
         exampleModel.rotateX(0.01);
         exampleModel.rotateY(0.01);
     }
 
+	if (exampleTexture) {
+		exampleTexture.center.set(0.5,0.5)
+		exampleTexture.rotation += delta
+	}
+
     if (stats) stats.update();
 
-    // if (controls) controls.update();
+    if (controls) controls.update();
 
     renderer.render(scene, camera);
 }

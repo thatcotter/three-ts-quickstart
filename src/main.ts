@@ -113,7 +113,7 @@ function initScene() {
 
     // // load a texture
     let textureMaterial: THREE.Material;
-	let textureLoader = new THREE.TextureLoader().setPath('./resources/textures/')
+	let textureLoader = new THREE.TextureLoader().setPath('../resources/textures/')
     textureLoader.load('uv_grid_opengl.jpg', function (texture) {
 
         texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
@@ -125,7 +125,7 @@ function initScene() {
 
 		cube.material = textureMaterial;
 
-        const modelLoader = new GLTFLoader().setPath('./resources/models/');
+        const modelLoader = new GLTFLoader().setPath('../resources/models/');
 		modelLoader.load('teapot.gltf', (gltf) => {
 			exampleModel = gltf.scene;
 			console.log(exampleModel)

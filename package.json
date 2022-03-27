@@ -4,7 +4,7 @@
 	"scripts": {
 		"start": "vite",
 		"watch": "tsc --watch",
-		"build": "tsc && vite build --base=/dist/",
+		"build": "tsc && vite build --base=./",
 		"serve": "vite preview",
 		"pretty": "prettier --write 'src/**/*.{ts,html,scss}'"
 	},

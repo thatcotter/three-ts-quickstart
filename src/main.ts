@@ -1,34 +1,44 @@
 import './style.scss';
 import * as THREE from 'three';
+import { Raycaster, ShaderMaterial, Shading, Vector2 } from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { Raycaster, ShaderMaterial, Shading, Vector2 } from 'three';
+import * as DAT from 'dat.gui';
+
+let model = {
+	groupX: 0,
+	groupY: 0,
+	groupAngle: 0,
+	activeView: 0
+}
 
 let renderer: THREE.WebGLRenderer;
-let scene: THREE.Scene;
-let camera: THREE.PerspectiveCamera;
 let clock = new THREE.Clock();
 
-let lightAmbient: THREE.AmbientLight;
-let lightPoint: THREE.PointLight;
-
-let controls: OrbitControls;
+let controls: DragControls;
 let stats: any;
 
-let cube: THREE.Mesh;
-let plane: THREE.Mesh;
-let group: THREE.Group;
-let exampleModel: THREE.Group;
-let exampleTexture: THREE.Texture;
+let raycaster: THREE.Raycaster;
+let pointerPosition: THREE.Vector2;
+
+let viewOne: ViewOne;
+let viewTwo: ViewTwo;
+
+let views: BaseView[] = [];
 
 import vertexShader from '../resources/shaders/shader.vert?raw';
 import fragmentShader from '../resources/shaders/shader.frag?raw';
+import { ViewOne } from './view/ViewOne';
+import { BaseView } from './view/BaseView';
+import { ViewTwo } from './view/ViewTwo';
 let shaderMat: ShaderMaterial;
 
 function main() {
 	initScene();
 	initStats();
+	initGUI();
 	initListeners();
 }
 
@@ -37,11 +47,14 @@ function initStats() {
 	document.body.appendChild(stats.dom);
 }
 
-function initScene() {
-	scene = new THREE.Scene();
+function initGUI() {
+	const gui = new DAT.GUI();
+	gui.add(model, 'groupX', -4, 4, 0.1)
+	gui.add(model, 'groupY', -3, 3, 0.1)
+	gui.add(model, 'groupAngle', 0, Math.PI*2.0, 0.1)
+}
 
-	camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-	camera.position.z = 5;
+function initScene() {
 
 	renderer = new THREE.WebGLRenderer();
 	renderer.shadowMap.enabled = true;
@@ -51,100 +64,16 @@ function initScene() {
 
 	document.body.appendChild(renderer.domElement);
 
-	controls = new OrbitControls(camera, renderer.domElement);
+	viewOne = new ViewOne(model, renderer);
+	views.push(viewOne);
 
-	lightAmbient = new THREE.AmbientLight(0x333333);
-	scene.add(lightAmbient);
+	viewTwo = new ViewTwo(model, renderer);
+	views.push(viewTwo);
 
-	// lightAmbient = new THREE.AmbientLight(0xffffff);
-	// scene.add(lightAmbient);
+	// controls = new OrbitControls(camera, renderer.domElement);
 
-	// Add a point light to add shadows
-	// https://github.com/mrdoob/three.js/pull/14087#issuecomment-431003830
-	const shadowIntensity = 0.25;
-
-	lightPoint = new THREE.PointLight(0xffffff);
-	lightPoint.position.set(-0.5, 0.5, 4);
-	lightPoint.castShadow = true;
-	lightPoint.intensity = shadowIntensity;
-	scene.add(lightPoint);
-
-	lightPoint = new THREE.PointLight(0xffffff);
-	lightPoint.position.set(-0.5, 0.5, 4);
-	lightPoint.castShadow = true;
-	lightPoint.intensity = shadowIntensity;
-	scene.add(lightPoint);
-
-	const lightPoint2 = lightPoint.clone();
-	lightPoint2.intensity = 1 - shadowIntensity;
-	lightPoint2.castShadow = false;
-	scene.add(lightPoint2);
-
-	const mapSize = 1024; // Default 512
-	const cameraNear = 0.5; // Default 0.5
-	const cameraFar = 500; // Default 500
-	lightPoint.shadow.mapSize.width = mapSize;
-	lightPoint.shadow.mapSize.height = mapSize;
-	lightPoint.shadow.camera.near = cameraNear;
-	lightPoint.shadow.camera.far = cameraFar;
-
-	const cubeGeometry = new THREE.BoxGeometry();
-	const cubeMaterial = new THREE.MeshPhongMaterial({ color: 0xf0bbbb });
-	// cubeMaterial.wireframe = true;
-	cube = new THREE.Mesh(cubeGeometry, cubeMaterial);
-	cube.castShadow = true;
-
-	group = new THREE.Group();
-	group.add(cube);
-
-	cube.position.set(-2, 0, 0);
-
-	scene.add(group);
-
-	// load a texture
-	let textureMaterial: THREE.Material;
-	let textureLoader = new THREE.TextureLoader().setPath('../resources/textures/');
-	textureLoader.load('uv_grid_opengl.jpg', function (texture) {
-		texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
-		texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-
-		exampleTexture = texture;
-
-		textureMaterial = new THREE.MeshBasicMaterial({ map: texture });
-
-		cube.material = textureMaterial;
-
-		const modelLoader = new GLTFLoader().setPath('../resources/models/');
-		modelLoader.load('teapot.gltf', (gltf) => {
-			exampleModel = gltf.scene;
-			console.log(exampleModel);
-
-			exampleModel.scale.set(0.01, 0.01, 0.01);
-			exampleModel.position.x = 2;
-
-			const teapotMat = new THREE.MeshPhongMaterial({ color: 0x22ff22 });
-
-			exampleModel.traverse((child: THREE.Object3D<THREE.Event>) => {
-				console.log(child);
-				console.log(child.type === 'Mesh');
-				if (child.type === 'Mesh') {
-					// (child as gltfMesh).material = teapotMat;
-					(child as gltfMesh).material = textureMaterial;
-				}
-			});
-
-			// scene.add(exampleModel)
-			group.add(exampleModel);
-		});
-	});
-
-	// // Add a plane
-	const geometryPlane = new THREE.PlaneBufferGeometry(6, 6, 10, 10);
-	const materialPlane = new THREE.MeshPhongMaterial({
-		color: 0x666666,
-		side: THREE.DoubleSide,
-		flatShading: true,
-	});
+	raycaster = new THREE.Raycaster();
+	pointerPosition = new THREE.Vector2(0,0);
 
 	const uniforms = {
 		u_time: { type: 'f', value: 1.0 },
@@ -159,20 +88,17 @@ function initScene() {
 		side: THREE.DoubleSide,
 	});
 
-	plane = new THREE.Mesh(geometryPlane, materialPlane);
-	plane.position.z = -2;
-	plane.receiveShadow = true;
-	scene.add(plane);
-
 	// add event listener to highlight dragged objects
 
-	controls.addEventListener('dragstart', function (event) {
-		event.object.material.emissive.set(0xaaaaaa);
-	});
+	// controls = new DragControls([plane], camera, renderer.domElement);
 
-	controls.addEventListener('dragend', function (event) {
-		event.object.material.emissive.set(0x000000);
-	});
+	// controls.addEventListener('dragstart', function(event) {
+	// 	event.object.material.emissive.set(0xaaaaaa);
+	// })
+
+	// controls.addEventListener('dragend', function (event) {
+	// 	event.object.material.emissive.set(0x000000);
+	// })
 
 	// // Init animation
 	animate();
@@ -181,8 +107,11 @@ function initScene() {
 function initListeners() {
 	window.addEventListener('resize', onWindowResize, false);
 
+	window.addEventListener('pointermove', onPointerMove);
+
 	window.addEventListener('keydown', (event) => {
 		const { key } = event;
+		// console.log(key);
 
 		switch (key) {
 			case 'e':
@@ -200,6 +129,17 @@ function initListeners() {
 				win.document.write(`<img src='${src}' width='${domElement.width}' height='${domElement.height}'>`);
 				break;
 
+			case 'ArrowRight':
+				model.activeView = (model.activeView + 1) % views.length
+				break;
+
+			case 'ArrowLeft':
+				model.activeView = (model.activeView - 1)
+				if (model.activeView < 0) {
+					model.activeView = views.length - 1;
+				}
+				break;
+
 			default:
 				break;
 		}
@@ -207,9 +147,12 @@ function initListeners() {
 }
 
 function onWindowResize() {
-	camera.aspect = window.innerWidth / window.innerHeight;
-	camera.updateProjectionMatrix();
-	renderer.setSize(window.innerWidth, window.innerHeight);
+	viewOne.onWindowResize();
+}
+
+function onPointerMove(event: any) {
+	pointerPosition.x = (event.clientX / window.innerWidth) * 2 - 1;
+	pointerPosition.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
 
 
@@ -222,33 +165,42 @@ function animate() {
 
 	shaderMat.uniforms.u_time.value += delta;
 
-	cube.rotation.x += 0.01;
-	cube.rotation.y += 0.01;
+	switch (model.activeView) {
+		case 0:
+			viewOne.update(clock);
+			break;
 
-	group.rotateZ(delta);
-	group.position.set(Math.sin(clock.getElapsedTime()) * 2, 0, 0);
+		case 1:
+			viewTwo.update(clock);
+			break;
 
-	const vertArray = plane.geometry.attributes.position;
-	for (let i = 0; i < vertArray.count; i++) {
-		vertArray.setZ(i, Math.sin(clock.getElapsedTime() + i - vertArray.count / 2) * 0.5 + Math.cos(clock.getElapsedTime() - i) * 0.5);
+		default:
+			break;
 	}
-	plane.geometry.attributes.position.needsUpdate = true;
+	
 
-	if (exampleModel != undefined) {
-		exampleModel.rotateX(0.01);
-		exampleModel.rotateY(0.01);
-	}
 
-	if (exampleTexture) {
-		exampleTexture.center.set(0.5, 0.5);
-		exampleTexture.rotation += delta;
-	}
+	// raycaster.setFromCamera(pointerPosition, camera)
+	// const intersects = raycaster.intersectObjects(scene.children)
+
+	// for (let i = 0; i < scene.children.length; i++) {
+	// 	if (scene.children[i].type === "Mesh") {
+	// 		(scene.children[i] as MeshObj).material.color.set(0x888888);
+	// 	}
+	// }
+
+	// for (let i = 0; i < intersects.length; i++) {
+	// 	if (intersects[i].object.type === 'Mesh') {
+	// 		(intersects[i].object as MeshObj).material.color.set(0xff0000);
+	// 	}
+	// }
+
 
 	if (stats) stats.update();
 
-	if (controls) controls.update();
+	// if (controls) controls.update();
 
-	renderer.render(scene, camera);
+	renderer.render(views[model.activeView].scene, views[model.activeView].camera);
 }
 
 main();

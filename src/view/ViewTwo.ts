@@ -36,6 +36,7 @@ export class ViewTwo extends BaseView {
 		this.scene.add(this.lightAmbient);
 	}
 
+	//@ts-ignore
 	update(clock: Clock): void {
 		
 	}

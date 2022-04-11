@@ -120,7 +120,7 @@ function initListeners() {
 				const { domElement } = renderer;
 
 				// Makse sure scene is rendered.
-				renderer.render(scene, camera);
+				// renderer.render(scene, camera);
 
 				const src = domElement.toDataURL();
 

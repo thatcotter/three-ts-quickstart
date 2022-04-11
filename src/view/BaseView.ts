@@ -16,6 +16,7 @@ export class BaseView {
 		this.model = model;
 	}
 
+	//@ts-ignore
 	update(clock: Clock): void {}
 
 	onWindowResize() {

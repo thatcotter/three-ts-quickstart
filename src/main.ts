@@ -11,7 +11,8 @@ let model = {
 	groupX: 0,
 	groupY: 0,
 	groupAngle: 0,
-	activeView: 0
+	activeView: 1,
+	pointerPosition: new THREE.Vector2(0,0)
 }
 
 let renderer: THREE.WebGLRenderer;
@@ -21,7 +22,7 @@ let controls: DragControls;
 let stats: any;
 
 let raycaster: THREE.Raycaster;
-let pointerPosition: THREE.Vector2;
+// let pointerPosition: THREE.Vector2;
 
 let viewOne: ViewOne;
 let viewTwo: ViewTwo;
@@ -52,6 +53,20 @@ function initGUI() {
 	gui.add(model, 'groupX', -4, 4, 0.1)
 	gui.add(model, 'groupY', -3, 3, 0.1)
 	gui.add(model, 'groupAngle', 0, Math.PI*2.0, 0.1)
+
+	let tlSettings = {
+		position: 0,
+		play: () => { viewTwo.tl.play() },
+		pause: () => { viewTwo.tl.pause() }
+	}
+	const tlControls = gui.addFolder("timeline")
+	tlControls.open()
+	tlControls.add(tlSettings, "position", 0, 5, 0.01).onChange((value) => {
+		viewTwo.tl.pause()
+		viewTwo.tl.seek(value)
+	})
+	tlControls.add(tlSettings, "play")
+	tlControls.add(tlSettings, 'pause');
 }
 
 function initScene() {
@@ -73,7 +88,7 @@ function initScene() {
 	// controls = new OrbitControls(camera, renderer.domElement);
 
 	raycaster = new THREE.Raycaster();
-	pointerPosition = new THREE.Vector2(0,0);
+	// model.pointerPosition = new THREE.Vector2(0,0);
 
 	const uniforms = {
 		u_time: { type: 'f', value: 1.0 },
@@ -148,11 +163,12 @@ function initListeners() {
 
 function onWindowResize() {
 	viewOne.onWindowResize();
+	viewTwo.onWindowResize();
 }
 
 function onPointerMove(event: any) {
-	pointerPosition.x = (event.clientX / window.innerWidth) * 2 - 1;
-	pointerPosition.y = -(event.clientY / window.innerHeight) * 2 + 1;
+	model.pointerPosition.x = (event.clientX / window.innerWidth) * 2 - 1;
+	model.pointerPosition.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
 
 

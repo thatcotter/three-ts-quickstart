@@ -57,16 +57,22 @@ function initGUI() {
 	let tlSettings = {
 		position: 0,
 		play: () => { viewTwo.tl.play() },
-		pause: () => { viewTwo.tl.pause() }
+		pause: () => { viewTwo.tl.pause() },
+		restart: () => {
+			viewTwo.tl.pause()
+			viewTwo.tl.seek(0)
+			viewTwo.tl.play()
+		}
 	}
 	const tlControls = gui.addFolder("timeline")
 	tlControls.open()
-	tlControls.add(tlSettings, "position", 0, 5, 0.01).onChange((value) => {
+	tlControls.add(tlSettings, "position", 0, 8, 0.01).onChange((value) => {
 		viewTwo.tl.pause()
 		viewTwo.tl.seek(value)
 	})
 	tlControls.add(tlSettings, "play")
 	tlControls.add(tlSettings, 'pause');
+	tlControls.add(tlSettings, "restart");
 }
 
 function initScene() {

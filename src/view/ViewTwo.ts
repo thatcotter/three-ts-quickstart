@@ -1,4 +1,4 @@
-import { AmbientLight, Clock, Mesh, MeshPhongMaterial, PointLight, SphereGeometry, Vector3, WebGLRenderer } from "three";
+import { AmbientLight, BufferGeometry, Clock, Color, Material, Mesh, MeshPhongMaterial, PointLight, SphereGeometry, Vector3, WebGLRenderer } from "three";
 import { lerp3D } from "../utils";
 import { BaseView } from "./BaseView";
 import { gsap } from "gsap";
@@ -19,9 +19,13 @@ export class ViewTwo extends BaseView {
 		this.tl = gsap.timeline()
 
 		const sphereGeometry = new SphereGeometry(0.5);
-		const sphereMaterial = new MeshPhongMaterial({ color: 0x32cd43 });
+		
 		for (let i = 0; i < 10; i++) {
+			const sphereMaterial = new MeshPhongMaterial({ color: 0xffffff });
 			const tempSphere = new Mesh(sphereGeometry, sphereMaterial);
+
+			// tempSphere.material.color.set( Math.random() * 0xffffff );
+
 			this.tl.to(tempSphere.position, 
 				{ 
 					x: Math.cos((i / 10) * Math.PI * 2) * 3,
@@ -29,13 +33,87 @@ export class ViewTwo extends BaseView {
 				 	duration: 2,
 				 	ease: "bounce.out"
 				}, `${i/4}`);
+
 			this.tl.fromTo(tempSphere.scale,
 				{x: 0, y: 0},
 				{x: 1, y: 1, duration: 2, ease: "expo.out"}, "<")
+
+			this.tl.to(tempSphere.material.color,
+				{ 
+					r: Math.random(), 
+					g: Math.random(),
+					b: Math.random(),
+					duration: 2
+				}, "<");
+
 			// tempSphere.position.x = i - 5
 			this.spheres.push( tempSphere )
 			this.scene.add( tempSphere )
 		}
+
+		this.tl.addLabel("returnLabel", "<")
+		this.spheres.forEach((sphere: Mesh, i: number) => {
+			
+			this.tl.to(sphere.scale, 
+				{
+					x: 0,
+					y: 0,
+					z: 0,
+					duration: 4
+				}, `returnLabel +=${i/4}`)
+
+			this.tl.to(
+				//@ts-ignore
+				sphere.material.color,
+				{
+					r: 1,
+					g: 1,
+					b: 1,
+					duration: 4,
+				},
+				`<`
+			);
+
+			this.tl.to(
+				sphere.position,
+				{
+					x: Math.cos((i / 10) * Math.PI * 2 - Math.PI) * 3,
+					duration: 1,
+					ease: "expo.out"
+				},
+				'<'
+			);
+
+			this.tl.to(
+				sphere.position,
+				{
+					y: Math.sin((i / 10) * -Math.PI * 2) * 3,
+					duration: 2,
+					ease: "sine.out"
+				},
+				'<'
+			);
+
+			this.tl.to(
+				sphere.position,
+				{
+					z: Math.sin(sphere.position.x / 3) * 3,
+					duration: 1,
+					ease: "sine.out"
+				},
+				'<'
+			);
+
+			this.tl.to(
+				sphere.position,
+				{
+					z: 0,
+					duration: 1,
+					ease: 'sine.out',
+				},
+			);
+
+		})
 
 		// const sphereGeometry = new SphereGeometry(0.5);
 		// const sphereMaterial = new MeshPhongMaterial({color: 0x32cd43})
@@ -82,4 +160,8 @@ export class ViewTwo extends BaseView {
 		// this.sphere.position.set(targetPos.x, targetPos.y, targetPos.z)
 		
 	}
+}
+
+interface ColorMaterial extends Material {
+	color: Color
 }

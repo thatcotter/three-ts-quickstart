@@ -31,7 +31,6 @@ export class ViewThree extends BaseView {
 
 	update(clock: Clock): void {
 		const time = clock.getElapsedTime()
-
 		this.blobMat.uniforms.u_time.value = time;
 	}
 }

@@ -7,11 +7,18 @@ import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as DAT from 'dat.gui';
 
+// import vertexShader from '../resources/shaders/shader.vert?raw';
+// import fragmentShader from '../resources/shaders/shader.frag?raw';
+import { ViewOne } from './view/ViewOne';
+import { BaseView } from './view/BaseView';
+import { ViewTwo } from './view/ViewTwo';
+import { ViewThree } from './view/ViewThree';
+
 let model = {
 	groupX: 0,
 	groupY: 0,
 	groupAngle: 0,
-	activeView: 1,
+	activeView: 2,
 	pointerPosition: new THREE.Vector2(0,0)
 }
 
@@ -26,15 +33,12 @@ let raycaster: THREE.Raycaster;
 
 let viewOne: ViewOne;
 let viewTwo: ViewTwo;
+let viewThree: ViewThree;
 
 let views: BaseView[] = [];
 
-import vertexShader from '../resources/shaders/shader.vert?raw';
-import fragmentShader from '../resources/shaders/shader.frag?raw';
-import { ViewOne } from './view/ViewOne';
-import { BaseView } from './view/BaseView';
-import { ViewTwo } from './view/ViewTwo';
-let shaderMat: ShaderMaterial;
+
+// let shaderMat: ShaderMaterial;
 
 function main() {
 	initScene();
@@ -91,6 +95,9 @@ function initScene() {
 	viewTwo = new ViewTwo(model, renderer);
 	views.push(viewTwo);
 
+	viewThree = new ViewThree(model, renderer);
+	views.push(viewThree);
+
 	// controls = new OrbitControls(camera, renderer.domElement);
 
 	raycaster = new THREE.Raycaster();
@@ -102,12 +109,12 @@ function initScene() {
 		// u_mouse: { type: 'v2', value: new THREE.Vector2() },
 	};
 
-	shaderMat = new THREE.ShaderMaterial({
-		uniforms: uniforms,
-		vertexShader: vertexShader,
-		fragmentShader: fragmentShader,
-		side: THREE.DoubleSide,
-	});
+	// shaderMat = new THREE.ShaderMaterial({
+	// 	uniforms: uniforms,
+	// 	vertexShader: vertexShader,
+	// 	fragmentShader: fragmentShader,
+	// 	side: THREE.DoubleSide,
+	// });
 
 	// add event listener to highlight dragged objects
 
@@ -185,7 +192,7 @@ function animate() {
 
 	let delta = clock.getDelta();
 
-	shaderMat.uniforms.u_time.value += delta;
+	// shaderMat.uniforms.u_time.value += delta;
 
 	switch (model.activeView) {
 		case 0:
@@ -194,6 +201,10 @@ function animate() {
 
 		case 1:
 			viewTwo.update(clock);
+			break;
+
+		case 2:
+			viewThree.update(clock);
 			break;
 
 		default:

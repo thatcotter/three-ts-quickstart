@@ -24,15 +24,18 @@ void main(void){
 	
 	vec3 hue = vec3(0.);//step(0.5, vec3(1.-length(position)));
 
-	// for(float i = 0.; i < 1.; i++) {
+	for(float i = 0.; i < 12.; i++) {
 		
-		// position.x = cos(u_time);
-		// position.y = sin(u_time)* 0.5;
+		position.x += cos(u_time + i/3.14 * 2.) * 0.35;
+		position.y += sin(u_time + i/3.14 * 2.) * 0.35;
 
-		vec3 circle = step(0.5, vec3(1.- length(abs(position))));
+		vec3 circle = step(0.95, vec3(1.- length(abs(position))));
 
 		hue += circle;
-	// }
+
+		position.x -= cos(u_time + i/3.14 * 2.) * 0.35;
+		position.y -= sin(u_time + i/3.14 * 2.) * 0.35;
+	}
 
 	gl_FragColor=vec4(hue, 1.0);
 }

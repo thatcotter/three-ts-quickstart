@@ -13,13 +13,15 @@ import { ViewOne } from './view/ViewOne';
 import { BaseView } from './view/BaseView';
 import { ViewTwo } from './view/ViewTwo';
 import { ViewThree } from './view/ViewThree';
+import { ViewFour } from './view/ViewFour';
 
 let model = {
 	groupX: 0,
 	groupY: 0,
 	groupAngle: 0,
-	activeView: 2,
-	pointerPosition: new THREE.Vector2(0,0)
+	activeView: 3,
+	pointerPosition: new THREE.Vector2(0,0),
+	gravity: new THREE.Vector3(0,-9.8,0)
 }
 
 let renderer: THREE.WebGLRenderer;
@@ -34,8 +36,11 @@ let raycaster: THREE.Raycaster;
 let viewOne: ViewOne;
 let viewTwo: ViewTwo;
 let viewThree: ViewThree;
+let viewFour: ViewFour;
 
 let views: BaseView[] = [];
+
+let gui: DAT.GUI;
 
 
 // let shaderMat: ShaderMaterial;
@@ -53,30 +58,71 @@ function initStats() {
 }
 
 function initGUI() {
-	const gui = new DAT.GUI();
-	gui.add(model, 'groupX', -4, 4, 0.1)
-	gui.add(model, 'groupY', -3, 3, 0.1)
-	gui.add(model, 'groupAngle', 0, Math.PI*2.0, 0.1)
+	gui = new DAT.GUI();
+	updateGUI()
+}
 
-	let tlSettings = {
-		position: 0,
-		play: () => { viewTwo.tl.play() },
-		pause: () => { viewTwo.tl.pause() },
-		restart: () => {
-			viewTwo.tl.pause()
-			viewTwo.tl.seek(0)
-			viewTwo.tl.play()
-		}
+function updateGUI() {
+
+	console.log(gui.__folders);
+	if (gui.__folders.group) {
+		gui.removeFolder(gui.__folders.group);
 	}
-	const tlControls = gui.addFolder("timeline")
-	tlControls.open()
-	tlControls.add(tlSettings, "position", 0, 8, 0.01).onChange((value) => {
-		viewTwo.tl.pause()
-		viewTwo.tl.seek(value)
-	})
-	tlControls.add(tlSettings, "play")
-	tlControls.add(tlSettings, 'pause');
-	tlControls.add(tlSettings, "restart");
+
+	if (gui.__folders.timeline) {
+		gui.removeFolder(gui.__folders.timeline);
+	}
+
+	if (gui.__folders.cannon) {
+		gui.removeFolder(gui.__folders.cannon);
+	}
+
+	switch (model.activeView) {
+		case 0:
+			const groupControls = gui.addFolder('group');
+			groupControls.open();
+			groupControls.add(model, 'groupX', -4, 4, 0.1);
+			groupControls.add(model, 'groupY', -3, 3, 0.1);
+			groupControls.add(model, 'groupAngle', 0, Math.PI * 2.0, 0.1);
+			break;
+
+		case 1:
+			let tlSettings = {
+				position: 0,
+				play: () => {
+					viewTwo.tl.play();
+				},
+				pause: () => {
+					viewTwo.tl.pause();
+				},
+				restart: () => {
+					viewTwo.tl.pause();
+					viewTwo.tl.seek(0);
+					viewTwo.tl.play();
+				},
+			};
+			const tlControls = gui.addFolder('timeline');
+			tlControls.open();
+			tlControls.add(tlSettings, 'position', 0, 8, 0.01).onChange((value) => {
+				viewTwo.tl.pause();
+				viewTwo.tl.seek(value);
+			});
+			tlControls.add(tlSettings, 'play');
+			tlControls.add(tlSettings, 'pause');
+			tlControls.add(tlSettings, 'restart');
+			break;
+
+		case 3:
+			const cannonControls = gui.addFolder('cannon');
+			cannonControls.open();
+			cannonControls.add(model.gravity, 'x', -10, 10, 0.01);
+			cannonControls.add(model.gravity, 'y', -10, 10, 0.01);
+			cannonControls.add(model.gravity, 'z', -10, 10, 0.01);
+			break;
+	
+		default:
+			break;
+	}
 }
 
 function initScene() {
@@ -97,6 +143,9 @@ function initScene() {
 
 	viewThree = new ViewThree(model, renderer);
 	views.push(viewThree);
+
+	viewFour = new ViewFour(model, renderer);
+	views.push(viewFour);
 
 	// controls = new OrbitControls(camera, renderer.domElement);
 
@@ -159,6 +208,7 @@ function initListeners() {
 
 			case 'ArrowRight':
 				model.activeView = (model.activeView + 1) % views.length
+				updateGUI();
 				break;
 
 			case 'ArrowLeft':
@@ -166,6 +216,7 @@ function initListeners() {
 				if (model.activeView < 0) {
 					model.activeView = views.length - 1;
 				}
+				updateGUI();
 				break;
 
 			default:
@@ -205,6 +256,10 @@ function animate() {
 
 		case 2:
 			viewThree.update(clock);
+			break;
+
+		case 3:
+			viewFour.update(clock);
 			break;
 
 		default:

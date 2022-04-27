@@ -126,7 +126,6 @@ function updateGUI() {
 }
 
 function initScene() {
-
 	renderer = new THREE.WebGLRenderer();
 	renderer.shadowMap.enabled = true;
 	renderer.shadowMap.type = THREE.PCFSoftShadowMap;

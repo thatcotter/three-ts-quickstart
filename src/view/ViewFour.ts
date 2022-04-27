@@ -2,18 +2,15 @@ import { Clock, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshNormalMaterial
 import * as CANNON from "cannon-es";
 import { BaseView } from "./BaseView";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { Vec3 } from "cannon-es";
+import { Entity } from "../actors/Entity";
 
 
 export class ViewFour extends BaseView{
 
 	world: CANNON.World;
 
-	ballBody: CANNON.Body;
-	ballMesh: Mesh;
-
-	groundBody: CANNON.Body;
-	groundMesh: Mesh;
+	balls: Entity[];
+	ground: Entity;
 
 	light: PointLight;
 
@@ -29,34 +26,57 @@ export class ViewFour extends BaseView{
 			gravity: new CANNON.Vec3(0,-9.8,0)
 		});
 
-		this.ballBody = new CANNON.Body({
-			mass: 1,
-			shape: new CANNON.Sphere(1)
-		});
-		this.ballBody.position.y = 10;
-		// this.ballBody.applyForce(new CANNON.Vec3(10, 0, 0));
-		// this.ballBody.applyTorque(new CANNON.Vec3(0,0,-100))
+		this.balls = [];
 
+		for (let i = 0; i < 100; i++) {
+			const radius = Math.random()
 
-		this.world.addBody(this.ballBody);
+			const tempBall = new Entity(
+				new SphereGeometry(radius),
+				new MeshPhongMaterial({
+					flatShading: true,
+					color: Math.random() * 0xffffff,
+				}),
+				{
+					mass: radius,
+					shape: new CANNON.Sphere(radius),
+				}
+			);
 
-		this.ballMesh = new Mesh(new SphereGeometry(), new MeshPhongMaterial({
-			color: 0xcc438f,
-			flatShading: true
-		}));
-		this.scene.add(this.ballMesh);
+			tempBall.body.position.set(
+				(Math.random() - 0.5) * 10, 
+				(Math.random() - 0.5) * 10, 
+				(Math.random() - 0.5) * 10);
+			tempBall.body.applyTorque(new CANNON.Vec3(
+				Math.random() * 5, 
+				Math.random() * 5, 
+				Math.random() * 5));
+			tempBall.body.applyForce(new CANNON.Vec3(
+				Math.random() * 50, 
+				Math.random() * 50, 
+				Math.random() * 50));
 
-		this.groundBody = new CANNON.Body({
-			type: CANNON.Body.STATIC,
-			shape: new CANNON.Plane()
-		});
-		this.groundBody.quaternion.setFromEuler(-Math.PI/2, 0, 0);
-		this.groundBody.position.set(0, -2, 0);
-		this.world.addBody(this.groundBody);
+			tempBall.body.position.y += 5;
+			
+			this.balls.push(tempBall)
+		}
 
-		this.groundMesh = new Mesh( new PlaneGeometry(10,10), new MeshNormalMaterial());
-		this.scene.add(this.groundMesh);
+		this.balls.forEach((ball: Entity) => {
+			this.scene.add(ball.mesh)
+			this.world.addBody(ball.body)
+		})
 
+		this.ground = new Entity(
+			new PlaneGeometry(100,100),
+			new MeshNormalMaterial(),
+			{
+				type: CANNON.Body.STATIC,
+				shape: new CANNON.Plane()
+			})
+		this.ground.body.quaternion.setFromEuler(-Math.PI/2,0,0)
+		this.ground.body.position.y = -2;
+		this.scene.add(this.ground.mesh);
+		this.world.addBody(this.ground.body);
 
 		this.light = new PointLight(0xdddddd)
 		this.light.position.set(6,4,5)
@@ -71,15 +91,9 @@ export class ViewFour extends BaseView{
 		this.world.fixedStep();
 		this.controller.update();
 
-		
-		this.ballMesh.position.copy(this.ballBody.position as IVec3);
-		this.ballMesh.quaternion.copy(this.ballBody.quaternion as IQuaternion);
-
-		this.groundMesh.position.copy(this.groundBody.position as IVec3);
-		this.groundMesh.quaternion.copy(this.groundBody.quaternion as IQuaternion);
-
-
-		// console.log(this.ballBody.position);
+		// this.ball.update();
+		this.balls.forEach((ball: Entity) => ball.update())
+		this.ground.update();
 	}
 }
 

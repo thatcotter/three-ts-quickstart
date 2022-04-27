@@ -24,4 +24,6 @@ export class BaseView {
 		this.camera.updateProjectionMatrix();
 		this.renderer.setSize(window.innerWidth, window.innerHeight);
 	}
+
+	onMouseMove() {}
 }

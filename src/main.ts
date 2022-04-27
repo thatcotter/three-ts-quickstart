@@ -19,7 +19,7 @@ let model = {
 	groupX: 0,
 	groupY: 0,
 	groupAngle: 0,
-	activeView: 3,
+	activeView: 1,
 	pointerPosition: new THREE.Vector2(0,0),
 	gravity: new THREE.Vector3(0,-9.8,0)
 }
@@ -232,6 +232,8 @@ function onWindowResize() {
 function onPointerMove(event: any) {
 	model.pointerPosition.x = (event.clientX / window.innerWidth) * 2 - 1;
 	model.pointerPosition.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+	viewTwo.onMouseMove()
 }
 
 

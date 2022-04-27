@@ -34,9 +34,9 @@ export class ViewTwo extends BaseView {
 				 	ease: "bounce.out"
 				}, `${i/4}`);
 
-			this.tl.fromTo(tempSphere.scale,
-				{x: 0, y: 0},
-				{x: 1, y: 1, duration: 2, ease: "expo.out"}, "<")
+			// this.tl.fromTo(tempSphere.scale,
+			// 	{x: 0, y: 0},
+			// 	{x: 1, y: 1, duration: 2, ease: "expo.out"}, "<")
 
 			this.tl.to(tempSphere.material.color,
 				{ 
@@ -54,13 +54,13 @@ export class ViewTwo extends BaseView {
 		this.tl.addLabel("returnLabel", "<")
 		this.spheres.forEach((sphere: Mesh, i: number) => {
 			
-			this.tl.to(sphere.scale, 
-				{
-					x: 0,
-					y: 0,
-					z: 0,
-					duration: 4
-				}, `returnLabel +=${i/4}`)
+			// this.tl.to(sphere.scale, 
+			// 	{
+			// 		x: 0,
+			// 		y: 0,
+			// 		z: 0,
+			// 		duration: 4
+			// 	}, `returnLabel +=${i/4}`)
 
 			this.tl.to(
 				//@ts-ignore
@@ -74,35 +74,35 @@ export class ViewTwo extends BaseView {
 				`<`
 			);
 
-			this.tl.to(
-				sphere.position,
-				{
-					x: Math.cos((i / 10) * Math.PI * 2 - Math.PI) * 3,
-					duration: 1,
-					ease: "expo.out"
-				},
-				'<'
-			);
+			// this.tl.to(
+			// 	sphere.position,
+			// 	{
+			// 		x: Math.cos((i / 10) * Math.PI * 2 - Math.PI) * 3,
+			// 		duration: 1,
+			// 		ease: "expo.out"
+			// 	},
+			// 	'<'
+			// );
 
-			this.tl.to(
-				sphere.position,
-				{
-					y: Math.sin((i / 10) * -Math.PI * 2) * 3,
-					duration: 2,
-					ease: "sine.out"
-				},
-				'<'
-			);
+			// this.tl.to(
+			// 	sphere.position,
+			// 	{
+			// 		y: Math.sin((i / 10) * -Math.PI * 2) * 3,
+			// 		duration: 2,
+			// 		ease: "sine.out"
+			// 	},
+			// 	'<'
+			// );
 
-			this.tl.to(
-				sphere.position,
-				{
-					z: Math.sin(sphere.position.x / 3) * 3,
-					duration: 1,
-					ease: "sine.out"
-				},
-				'<'
-			);
+			// this.tl.to(
+			// 	sphere.position,
+			// 	{
+			// 		z: Math.sin(sphere.position.x / 3) * 3,
+			// 		duration: 1,
+			// 		ease: "sine.out"
+			// 	},
+			// 	'<'
+			// );
 
 			this.tl.to(
 				sphere.position,
@@ -146,6 +146,13 @@ export class ViewTwo extends BaseView {
 	//@ts-ignore
 	update(clock: Clock): void {
 
+		// this.spheres.forEach(sphere => {
+		// 	sphere.position.set(0,0,0)
+		// })
+
+
+
+
 		// const time = clock.getElapsedTime();
 
 		// this.sphere.position.x = Math.cos(time) * 2
@@ -159,6 +166,22 @@ export class ViewTwo extends BaseView {
 		// // console.log(targetPos)
 		// this.sphere.position.set(targetPos.x, targetPos.y, targetPos.z)
 		
+	}
+
+	onMouseMove(): void {
+		console.log(this.model.pointerPosition)
+		this.spheres.forEach(sphere => {
+			this.tl.to(
+				sphere.position,
+				{
+					x: this.model.pointerPosition.x * 5,
+					y: this.model.pointerPosition.y * 5,
+					duration: 4,
+					ease: 'sine.out',
+				},
+				'returnLabel'
+			);
+		})
 	}
 }
 

@@ -1,12 +1,12 @@
 import { BoxGeometry, BufferGeometry, Clock, CylinderGeometry, Material, Mesh, MeshBasicMaterial, PlaneGeometry, ShaderMaterial, SphereGeometry, WebGLRenderer } from "three";
-import { BaseView } from "./BaseView";
+import { BaseView3D } from "./BaseView3D";
 
 import vertShader from '../../resources/shaders/shader.vert?raw'
 import fragShader from '../../resources/shaders/shader.frag?raw'
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 
 
-export class ViewThree extends BaseView {
+export class ViewThree extends BaseView3D {
 
 	controller: OrbitControls;
 

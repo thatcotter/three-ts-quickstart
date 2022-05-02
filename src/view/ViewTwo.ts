@@ -1,9 +1,9 @@
 import { AmbientLight, BufferGeometry, Clock, Color, Material, Mesh, MeshPhongMaterial, PointLight, SphereGeometry, Vector3, WebGLRenderer } from "three";
 import { lerp3D } from "../utils";
-import { BaseView } from "./BaseView";
+import { BaseView3D } from "./BaseView3D";
 import { gsap } from "gsap";
 
-export class ViewTwo extends BaseView {
+export class ViewTwo extends BaseView3D {
 
 	// sphere: Mesh;
 	spheres: Array<Mesh>;
@@ -52,7 +52,7 @@ export class ViewTwo extends BaseView {
 		}
 
 		this.tl.addLabel("returnLabel", "<")
-		this.spheres.forEach((sphere: Mesh, i: number) => {
+		this.spheres.forEach((sphere: Mesh) => {
 			
 			// this.tl.to(sphere.scale, 
 			// 	{

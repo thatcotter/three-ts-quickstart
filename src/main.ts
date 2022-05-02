@@ -1,19 +1,21 @@
 import './style.scss';
 import * as THREE from 'three';
-import { Raycaster, ShaderMaterial, Shading, Vector2 } from 'three';
+import * as PIXI from 'pixi.js'
+import { Mesh, Raycaster, ShaderMaterial, Shading, Vector2 } from 'three';
 import Stats from 'three/examples/jsm/libs/stats.module';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { DragControls } from 'three/examples/jsm/controls/DragControls.js'
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import * as DAT from 'dat.gui';
 
-// import vertexShader from '../resources/shaders/shader.vert?raw';
-// import fragmentShader from '../resources/shaders/shader.frag?raw';
+import { BaseView } from "./view/BaseView";
+import { BaseView2D } from './view/BaseView2D';
+import { BaseView3D } from './view/BaseView3D';
 import { ViewOne } from './view/ViewOne';
-import { BaseView } from './view/BaseView';
 import { ViewTwo } from './view/ViewTwo';
 import { ViewThree } from './view/ViewThree';
 import { ViewFour } from './view/ViewFour';
+import { ViewFive } from './view/ViewFive';
 
 let model = {
 	groupX: 0,
@@ -37,10 +39,13 @@ let viewOne: ViewOne;
 let viewTwo: ViewTwo;
 let viewThree: ViewThree;
 let viewFour: ViewFour;
+let viewFive: ViewFive;
 
 let views: BaseView[] = [];
 
 let gui: DAT.GUI;
+
+let pixiApp: PIXI.Application = new PIXI.Application();
 
 
 // let shaderMat: ShaderMaterial;
@@ -132,7 +137,13 @@ function initScene() {
 	renderer.setPixelRatio(window.devicePixelRatio);
 	renderer.setSize(window.innerWidth, window.innerHeight);
 
+	pixiApp.renderer.view.style.position = 'absolute';
+	pixiApp.renderer.view.style.display = 'none';
+	pixiApp.renderer.backgroundColor = 0xe9ffc2;
+	pixiApp.renderer.resize(window.innerWidth, window.innerHeight);
+
 	document.body.appendChild(renderer.domElement);
+	document.body.appendChild(pixiApp.view);
 
 	viewOne = new ViewOne(model, renderer);
 	views.push(viewOne);
@@ -145,6 +156,9 @@ function initScene() {
 
 	viewFour = new ViewFour(model, renderer);
 	views.push(viewFour);
+
+	viewFive = new ViewFive(model, pixiApp);
+	views.push(viewFive);
 
 	// controls = new OrbitControls(camera, renderer.domElement);
 
@@ -236,6 +250,10 @@ function onPointerMove(event: any) {
 	viewTwo.onMouseMove()
 }
 
+const myVariable  = {
+	zpos: 10
+}
+
 
 function animate() {
 	requestAnimationFrame(() => {
@@ -261,6 +279,10 @@ function animate() {
 
 		case 3:
 			viewFour.update(clock);
+			break;
+
+		case 4:
+			viewFive.update();
 			break;
 
 		default:
@@ -289,7 +311,19 @@ function animate() {
 
 	// if (controls) controls.update();
 
-	renderer.render(views[model.activeView].scene, views[model.activeView].camera);
+	if(views[model.activeView] instanceof BaseView3D) {
+		renderer.domElement.style.display = 'block'
+		pixiApp.renderer.view.style.display = 'none'
+
+		renderer.render((views[model.activeView] as BaseView3D).scene, (views[model.activeView] as BaseView3D).camera);
+	}
+
+	if (views[model.activeView] instanceof BaseView2D) {
+		renderer.domElement.style.display = 'none'
+		pixiApp.renderer.view.style.display = 'block'
+
+		// 
+	}
 }
 
 main();

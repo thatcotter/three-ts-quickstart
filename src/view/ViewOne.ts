@@ -17,9 +17,9 @@ import {
 	Clock
 } from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { BaseView } from "./BaseView";
+import { BaseView3D } from "./BaseView3D";
 
-export class ViewOne extends BaseView{
+export class ViewOne extends BaseView3D{
 
 	group: Group;
 	cube: Mesh;

@@ -1,11 +1,11 @@
 import { Clock, Mesh, MeshBasicMaterial, MeshLambertMaterial, MeshNormalMaterial, MeshPhongMaterial, PlaneGeometry, PointLight, Quaternion, SphereGeometry, Vector3, WebGLRenderer } from "three";
 import * as CANNON from "cannon-es";
-import { BaseView } from "./BaseView";
+import { BaseView3D } from "./BaseView3D";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import { Entity } from "../actors/Entity";
 
 
-export class ViewFour extends BaseView{
+export class ViewFour extends BaseView3D{
 
 	world: CANNON.World;
 
